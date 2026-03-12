@@ -16,6 +16,9 @@ pub enum View {
       match_key: String,
       selected_team_index: usize,
    },
+   CompetitionBrowser {
+      selected_index: usize,
+   },
 }
 
 pub struct AppData {
@@ -45,7 +48,7 @@ impl App {
       oprs: EventOPRs,
       test_mode: bool,
    ) -> Self {
-      let mut team_stats: Vec<TeamStats> = if rankings.is_empty() {
+      let team_stats: Vec<TeamStats> = if rankings.is_empty() {
          // No rankings yet - create stats for all teams sorted by team number
          let mut stats: Vec<TeamStats> = teams
             .iter()

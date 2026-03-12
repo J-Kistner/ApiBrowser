@@ -13,22 +13,46 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 
-use api::{endpoints::ApiEndpoints, ApiClient};
+use api::{endpoints::ApiEndpoints, models::Event as ApiEvent, ApiClient};
 use cache::Cache;
 use config::Config;
 use ui::{App, View};
+
+// AppContext holds all the state needed for switching events
+struct AppContext {
+   client: ApiClient,
+   current_event_key: String,
+   available_events: Vec<ApiEvent>,
+   test_mode: bool,
+}
 
 fn main() -> Result<()> {
    // Load configuration
    let config = Config::load().context("Failed to load configuration")?;
 
-   // Initialize API client and cache
+   // Initialize API client
    let client = ApiClient::new(config.api_key.clone())?;
+
+   // Load available events for the year
+   let year = if config.test_mode { 2024 } else { 2026 };
+   let temp_cache = Cache::new("temp")?;
+   let available_events = ApiEndpoints::get_events_by_year(&client, &temp_cache, year)
+      .context("Failed to fetch events list")?;
+
+   // Initialize cache for current event
    let cache = Cache::new(&config.event_key)?;
    let endpoints = ApiEndpoints::new(&client, &cache, config.event_key.clone());
 
    // Load initial data
    let mut app = load_app_data(&endpoints, config.test_mode)?;
+
+   // Create app context
+   let mut ctx = AppContext {
+      client,
+      current_event_key: config.event_key.clone(),
+      available_events,
+      test_mode: config.test_mode,
+   };
 
    // Setup terminal
    enable_raw_mode()?;
@@ -38,7 +62,7 @@ fn main() -> Result<()> {
    let mut terminal = Terminal::new(backend)?;
 
    // Run app
-   let res = run_app(&mut terminal, &mut app, &endpoints, config.test_mode);
+   let res = run_app(&mut terminal, &mut app, &mut ctx);
 
    // Restore terminal
    disable_raw_mode()?;
@@ -93,8 +117,7 @@ fn load_app_data(endpoints: &ApiEndpoints, test_mode: bool) -> Result<App> {
 fn run_app<B: ratatui::backend::Backend>(
    terminal: &mut Terminal<B>,
    app: &mut App,
-   endpoints: &ApiEndpoints,
-   test_mode: bool,
+   ctx: &mut AppContext,
 ) -> Result<()> {
    loop {
       terminal.draw(|f| {
@@ -119,6 +142,15 @@ fn run_app<B: ratatui::backend::Backend>(
             } => {
                ui::match_detail::render(f, app, match_key, *selected_team_index, area);
             }
+            View::CompetitionBrowser { selected_index } => {
+               ui::competition_browser::render(
+                  f,
+                  area,
+                  &ctx.available_events,
+                  *selected_index,
+                  &ctx.current_event_key,
+               );
+            }
          }
       })?;
 
@@ -131,7 +163,10 @@ fn run_app<B: ratatui::backend::Backend>(
          // Handle global refresh key
          if let KeyCode::Char('r') = key.code {
             // Reload data
-            match load_app_data(endpoints, test_mode) {
+            let cache = Cache::new(&ctx.current_event_key)?;
+            let endpoints = ApiEndpoints::new(&ctx.client, &cache, ctx.current_event_key.clone());
+
+            match load_app_data(&endpoints, ctx.test_mode) {
                Ok(new_app) => {
                   *app = new_app;
                   // Show brief confirmation message
@@ -206,6 +241,15 @@ fn run_app<B: ratatui::backend::Backend>(
                selected_team_index,
             } => {
                handle_match_detail_input(app, key.code, match_key, *selected_team_index)?;
+            }
+            View::CompetitionBrowser { selected_index } => {
+               if handle_competition_browser_input(app, ctx, key.code, *selected_index, terminal)? {
+                  // Event was changed, reload app data
+                  let cache = Cache::new(&ctx.current_event_key)?;
+                  let endpoints =
+                     ApiEndpoints::new(&ctx.client, &cache, ctx.current_event_key.clone());
+                  *app = load_app_data(&endpoints, ctx.test_mode)?;
+               }
             }
          }
       }
@@ -289,6 +333,10 @@ fn handle_team_list_input(
    } else {
       // Normal navigation mode
       match key {
+         KeyCode::Char('p') => {
+            // Open competition browser
+            app.navigate_to(View::CompetitionBrowser { selected_index: 0 });
+         }
          KeyCode::Char('/') => {
             // Enter search mode
             app.current_view = View::TeamList {
@@ -416,6 +464,100 @@ fn handle_match_detail_input(
       _ => {}
    }
    Ok(())
+}
+
+fn handle_competition_browser_input<B: ratatui::backend::Backend>(
+   app: &mut App,
+   ctx: &mut AppContext,
+   key: KeyCode,
+   selected_index: usize,
+   terminal: &mut Terminal<B>,
+) -> Result<bool> {
+   // Filter to only regional events
+   let mut regional_events: Vec<&ApiEvent> = ctx
+      .available_events
+      .iter()
+      .filter(|e| e.event_type == 1)
+      .collect();
+
+   regional_events.sort_by(|a, b| a.start_date.cmp(&b.start_date));
+
+   let max_index = regional_events.len().saturating_sub(1);
+
+   match key {
+      KeyCode::Esc | KeyCode::Backspace => {
+         app.navigate_back();
+         Ok(false) // No event change
+      }
+      KeyCode::Down | KeyCode::Char('j') => {
+         let new_index = (selected_index + 1).min(max_index);
+         app.current_view = View::CompetitionBrowser {
+            selected_index: new_index,
+         };
+         Ok(false)
+      }
+      KeyCode::Up | KeyCode::Char('k') => {
+         let new_index = selected_index.saturating_sub(1);
+         app.current_view = View::CompetitionBrowser {
+            selected_index: new_index,
+         };
+         Ok(false)
+      }
+      KeyCode::Enter => {
+         if let Some(selected_event) = regional_events.get(selected_index) {
+            let new_event_key = selected_event.key.clone();
+
+            // Check if it's a different event
+            if new_event_key != ctx.current_event_key {
+               // Show loading message
+               terminal.draw(|f| {
+                  use ratatui::layout::Alignment;
+                  use ratatui::style::{Color, Style};
+                  use ratatui::widgets::{Block, Borders, Paragraph};
+
+                  let area = f.area();
+                  let popup_area = centered_rect(50, 20, area);
+
+                  let text = vec![
+                     ratatui::text::Line::from("Loading event..."),
+                     ratatui::text::Line::from(""),
+                     ratatui::text::Line::from(selected_event.name.as_str()),
+                  ];
+
+                  let popup = Paragraph::new(text)
+                     .block(
+                        Block::default()
+                           .borders(Borders::ALL)
+                           .title(" Switching Event "),
+                     )
+                     .style(Style::default().fg(Color::Yellow))
+                     .alignment(Alignment::Center);
+
+                  f.render_widget(popup, popup_area);
+               })?;
+
+               // Update context
+               ctx.current_event_key = new_event_key;
+
+               // Navigate back to team list
+               app.current_view = View::TeamList {
+                  selected_index: 0,
+                  search_query: String::new(),
+                  searching: false,
+               };
+
+               Ok(true) // Event changed, need to reload data
+            } else {
+               // Same event, just go back
+               app.navigate_back();
+               Ok(false)
+            }
+         } else {
+            Ok(false)
+         }
+      }
+      _ => Ok(false),
+   }
 }
 
 // Helper function to create a centered rectangle for popup

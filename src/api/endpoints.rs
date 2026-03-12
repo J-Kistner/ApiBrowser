@@ -18,6 +18,26 @@ impl<'a> ApiEndpoints<'a> {
       }
    }
 
+   /// Fetch all events for a given year
+   pub fn get_events_by_year(client: &ApiClient, cache: &Cache, year: i32) -> Result<Vec<Event>> {
+      let cache_key = format!("events_{}", year);
+      let endpoint = format!("/events/{}", year);
+
+      if let Some((cached_data, etag)) = cache.get::<Vec<Event>>(&cache_key) {
+         match client.get::<Vec<Event>>(&endpoint, etag.as_deref()) {
+            Ok((data, new_etag)) => {
+               cache.set(&cache_key, &data, new_etag)?;
+               return Ok(data);
+            }
+            Err(_) => return Ok(cached_data),
+         }
+      }
+
+      let (data, etag) = client.get::<Vec<Event>>(&endpoint, None)?;
+      cache.set(&cache_key, &data, etag)?;
+      Ok(data)
+   }
+
    pub fn get_event(&self) -> Result<Event> {
       let cache_key = "event";
       let endpoint = format!("/event/{}", self.event_key);

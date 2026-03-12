@@ -141,7 +141,7 @@ fn render_team_list(f: &mut Frame, app: &App, selected_index: usize, area: Rect)
          Block::default()
             .borders(Borders::ALL)
             .title(" Teams (Sorted by Rank) ")
-            .title_bottom(" [↑/↓: Navigate] [/: Search] [r: Refresh] [Enter: Details] [q: Quit] "),
+            .title_bottom(" [↑/↓: Navigate] [/: Search] [p: Change Event] [r: Refresh] [Enter: Details] [q: Quit] "),
       )
       .row_highlight_style(
          Style::default()

@@ -34,10 +34,23 @@ pub fn calculate_team_stats(
    // Find ranking info
    let ranking = rankings.iter().find(|r| r.team_key == team_key)?;
 
+   // Check if there are any completed qual matches in the event
+   let has_completed_quals = matches
+      .iter()
+      .any(|m| m.comp_level == "qm" && m.actual_time.is_some());
+
    // Get completed matches for this team
    let completed_matches: Vec<_> = matches
       .iter()
-      .filter(|m| m.actual_time.is_some())
+      .filter(|m| {
+         if has_completed_quals {
+            // Normal mode: only completed matches
+            m.actual_time.is_some()
+         } else {
+            // Pre-season mode: include test matches
+            m.actual_time.is_some() || m.comp_level == "test"
+         }
+      })
       .filter(|m| team_is_in_match(team_key, m))
       .collect();
 
@@ -110,10 +123,25 @@ pub fn create_unranked_team_stats(
    // Find team info
    let team = teams.iter().find(|t| t.key == team_key);
 
-   // Get completed matches for this team
+   // Check if there are any completed qual matches in the event
+   let has_completed_quals = matches
+      .iter()
+      .any(|m| m.comp_level == "qm" && m.actual_time.is_some());
+
+   // Get matches for this team
+   // If no qual matches completed, include test matches (actual_time present)
+   // Otherwise only count completed matches
    let completed_matches: Vec<_> = matches
       .iter()
-      .filter(|m| m.actual_time.is_some())
+      .filter(|m| {
+         if has_completed_quals {
+            // Normal mode: only completed matches
+            m.actual_time.is_some()
+         } else {
+            // Pre-season mode: include test matches that have been played
+            m.actual_time.is_some() || m.comp_level == "test"
+         }
+      })
       .filter(|m| team_is_in_match(team_key, m))
       .collect();
 
