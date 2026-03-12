@@ -44,11 +44,11 @@ pub fn calculate_team_stats(
       .iter()
       .filter(|m| {
          if has_completed_quals {
-            // Normal mode: only completed matches
-            m.actual_time.is_some()
+            // Normal mode: only completed qual/playoff matches (exclude practice/test)
+            m.actual_time.is_some() && m.comp_level != "pm" && m.comp_level != "test"
          } else {
-            // Pre-season mode: include test matches
-            m.actual_time.is_some() || m.comp_level == "test"
+            // Pre-season mode: include ALL completed matches (test, practice, etc.)
+            m.actual_time.is_some()
          }
       })
       .filter(|m| team_is_in_match(team_key, m))
