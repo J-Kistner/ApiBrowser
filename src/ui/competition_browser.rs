@@ -3,7 +3,7 @@ use ratatui::{
    layout::{Constraint, Direction, Layout, Rect},
    style::{Color, Modifier, Style},
    text::{Line, Span},
-   widgets::{Block, Borders, List, ListItem, Paragraph},
+   widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
    Frame,
 };
 
@@ -60,25 +60,41 @@ pub fn render(
             event.state_prov.as_deref().unwrap_or("")
          );
 
-         let marker = if is_current { "→ " } else { "  " };
-         let date = &event.start_date[5..10]; // Extract MM-DD
+         let marker = if is_current { "→" } else { " " };
+         let date = &event.start_date[5..10]; // Extract MM-DD from YYYY-MM-DD
 
-         let content = format!("{}{:<40} {:<25} {}", marker, event.name, location, date);
+         // Create a multi-part line with proper formatting
+         let line = Line::from(vec![
+            Span::styled(format!("{} ", marker), style),
+            Span::styled(format!("{:<45}", event.name), style),
+            Span::styled(format!("{:<30}", location), style),
+            Span::styled(date.to_string(), style),
+         ]);
 
-         ListItem::new(Line::from(Span::styled(content, style)))
+         ListItem::new(line)
       })
       .collect();
 
-   let list = List::new(items).block(Block::default().borders(Borders::ALL).title(format!(
-      " {} Regionals ",
-      events.first().map(|e| e.year).unwrap_or(2026)
-   )));
+   let list = List::new(items)
+      .block(Block::default().borders(Borders::ALL).title(format!(
+         " {} Regionals ({} total) ",
+         events.first().map(|e| e.year).unwrap_or(2026),
+         regional_events.len()
+      )))
+      .highlight_style(
+         Style::default()
+            .bg(Color::DarkGray)
+            .add_modifier(Modifier::BOLD),
+      );
 
-   f.render_widget(list, chunks[1]);
+   let mut state = ListState::default();
+   state.select(Some(selected_index));
+
+   f.render_stateful_widget(list, chunks[1], &mut state);
 
    // Footer with instructions
    let footer_text = vec![Line::from(vec![
-      Span::styled("↑/↓", Style::default().fg(Color::Yellow)),
+      Span::styled("↑/↓ j/k", Style::default().fg(Color::Yellow)),
       Span::raw(" Navigate  "),
       Span::styled("Enter", Style::default().fg(Color::Yellow)),
       Span::raw(" Select  "),
