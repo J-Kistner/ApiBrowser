@@ -68,14 +68,29 @@ cargo build --release
 
 ## Configuration
 
-Create a `.env` file with your TBA API key:
+You need a Blue Alliance API key. Get one at: https://www.thebluealliance.com/account
+
+The application will look for your API key in the following order:
+
+### Option 1: Config Directory (Recommended for installed binaries)
+```bash
+mkdir -p ~/.config/apibrowser
+echo "TBA_API_KEY=your_key_here" > ~/.config/apibrowser/.env
+```
+
+This works from any directory you run the command from.
+
+### Option 2: Current Directory (Good for development)
 ```bash
 echo "TBA_API_KEY=your_key_here" > .env
 ```
 
-Or set it as an environment variable:
+This requires you to run the command from the same directory.
+
+### Option 3: Environment Variable (Good for CI/Docker)
 ```bash
 export TBA_API_KEY=your_key_here
+apibrowser
 ```
 
 ## Usage

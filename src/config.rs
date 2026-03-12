@@ -23,8 +23,23 @@ pub struct Config {
 
 impl Config {
    pub fn load() -> Result<Self> {
-      // Load .env file
+      // Try loading .env from multiple locations:
+      // 1. Current directory
+      // 2. ~/.config/apibrowser/.env
+      // 3. Environment variable directly
+
+      // Try current directory first
       dotenvy::dotenv().ok();
+
+      // If not found, try config directory
+      if std::env::var("TBA_API_KEY").is_err() {
+         if let Some(home) = dirs::home_dir() {
+            let config_env = home.join(".config").join("apibrowser").join(".env");
+            if config_env.exists() {
+               dotenvy::from_path(&config_env).ok();
+            }
+         }
+      }
 
       // Parse CLI arguments
       let cli = Cli::parse();
