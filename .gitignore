@@ -1,0 +1,21 @@
+# Rust build artifacts
+/target
+Cargo.lock
+
+# Environment files
+.env
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Cache
+.cache/
+~/.cache/apibrowser/
+
+# OS files
+Thumbs.db
