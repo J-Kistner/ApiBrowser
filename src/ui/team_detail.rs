@@ -212,8 +212,22 @@ fn format_match_row(
 
          let score = format!("{}-{}", our_score, their_score);
 
-         // Try to get RP from score breakdown
-         let rp = "?"; // Would need to extract from breakdown
+         // Extract RP from score breakdown
+         let rp = if let Some(breakdown) = &match_data.score_breakdown {
+            let alliance_breakdown = if is_blue {
+               &breakdown.blue
+            } else {
+               &breakdown.red
+            };
+
+            alliance_breakdown
+               .get("rp")
+               .and_then(|v| v.as_i64())
+               .map(|v| v.to_string())
+               .unwrap_or_else(|| "?".to_string())
+         } else {
+            "?".to_string()
+         };
 
          (
             "✓".to_string(),

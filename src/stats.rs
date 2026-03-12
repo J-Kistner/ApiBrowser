@@ -231,18 +231,23 @@ fn extract_points_for_team(team_key: &str, match_data: &Match) -> (f32, f32, f32
          &breakdown.red
       };
 
-      // Try to extract 2025/2026 specific fields
-      // This is a simplified version - actual fields depend on the game
+      // Auto points - consistent across years
       let auto = alliance_breakdown
          .get("autoPoints")
          .and_then(|v| v.as_f64())
          .unwrap_or(0.0) as f32;
+
+      // Teleop points - consistent across years
       let teleop = alliance_breakdown
          .get("teleopPoints")
          .and_then(|v| v.as_f64())
          .unwrap_or(0.0) as f32;
+
+      // Endgame points - field name varies by year
       let endgame = alliance_breakdown
-         .get("endgamePoints")
+         .get("endgamePoints") // 2025/2026 field name
+         .or_else(|| alliance_breakdown.get("endGameTotalStagePoints")) // 2024 Crescendo
+         .or_else(|| alliance_breakdown.get("endGamePoints")) // Alternative capitalization
          .and_then(|v| v.as_f64())
          .unwrap_or(0.0) as f32;
 
