@@ -28,7 +28,7 @@ case "$OS" in
 esac
 
 # Get latest release version
-LATEST_VERSION=$(curl -s https://api.github.com/repos/yourusername/ApiBrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+LATEST_VERSION=$(curl -s https://api.github.com/repos/J-kistner/ApiBrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "$LATEST_VERSION" ]; then
   echo "Failed to fetch latest version"
@@ -38,7 +38,7 @@ fi
 echo "Installing ApiBrowser $LATEST_VERSION for $PLATFORM..."
 
 # Download binary
-DOWNLOAD_URL="https://github.com/yourusername/ApiBrowser/releases/download/${LATEST_VERSION}/apibrowser-${PLATFORM}"
+DOWNLOAD_URL="https://github.com/J-kistner/ApiBrowser/releases/download/${LATEST_VERSION}/apibrowser-${PLATFORM}"
 INSTALL_DIR="${HOME}/.local/bin"
 INSTALL_PATH="${INSTALL_DIR}/apibrowser"
 

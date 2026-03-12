@@ -9,13 +9,13 @@ Your git repository is initialized and ready! Here's how to push it to GitHub:
 1. Go to https://github.com/new
 2. Create a new repository named `ApiBrowser` (or your preferred name)
 3. **Do NOT** initialize with README, .gitignore, or license (we already have these)
-4. Copy the repository URL (e.g., `git@github.com:yourusername/ApiBrowser.git`)
+4. Copy the repository URL (e.g., `git@github.com:J-kistner/ApiBrowser.git`)
 
 ### 2. Push to GitHub
 
 ```bash
 # Add GitHub as remote
-git remote add origin git@github.com:yourusername/ApiBrowser.git
+git remote add origin git@github.com:J-kistner/ApiBrowser.git
 
 # Push to GitHub
 git branch -M main
@@ -46,15 +46,15 @@ This will automatically:
 
 After creating the GitHub repository, update these files with your actual username:
 
-- `README.md` - Replace `yourusername` with your GitHub username
-- `install.sh` - Replace `yourusername` with your GitHub username
+- `README.md` - Replace `J-kistner` with your GitHub username
+- `install.sh` - Replace `J-kistner` with your GitHub username
 - `.github/workflows/release.yml` - Should work as-is
 - `Cargo.toml` - Update the repository URL
 
 You can do a find-and-replace:
 ```bash
-# Replace yourusername with your actual username
-sed -i 's/yourusername/YOUR_GITHUB_USERNAME/g' README.md install.sh homebrew-formula.rb
+# Replace J-kistner with your actual username
+sed -i 's/J-kistner/YOUR_GITHUB_USERNAME/g' README.md install.sh homebrew-formula.rb
 
 # Update Cargo.toml repository field manually
 ```
@@ -65,11 +65,11 @@ Once your release is created, users can install via:
 
 ### 1. Quick Install Script (Easiest)
 ```bash
-curl -sSL https://raw.githubusercontent.com/yourusername/ApiBrowser/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/J-kistner/ApiBrowser/main/install.sh | bash
 ```
 
 ### 2. Direct Download
-From the [Releases page](https://github.com/yourusername/ApiBrowser/releases)
+From the [Releases page](https://github.com/J-kistner/ApiBrowser/releases)
 
 ### 3. Cargo Install (Rust users)
 After publishing to crates.io:
@@ -79,8 +79,8 @@ cargo install apibrowser
 
 ### 4. Docker
 ```bash
-docker pull ghcr.io/yourusername/apibrowser:latest
-docker run -it --rm -e TBA_API_KEY=your_key ghcr.io/yourusername/apibrowser
+docker pull ghcr.io/J-kistner/apibrowser:latest
+docker run -it --rm -e TBA_API_KEY=your_key ghcr.io/J-kistner/apibrowser
 ```
 
 ## Publishing to crates.io (Optional)
@@ -117,10 +117,10 @@ git push origin v0.2.0
 
 After the workflow runs, binaries will be available at:
 ```
-https://github.com/yourusername/ApiBrowser/releases/download/v0.1.0/apibrowser-linux-x86_64
-https://github.com/yourusername/ApiBrowser/releases/download/v0.1.0/apibrowser-macos-x86_64
-https://github.com/yourusername/ApiBrowser/releases/download/v0.1.0/apibrowser-macos-aarch64
-https://github.com/yourusername/ApiBrowser/releases/download/v0.1.0/apibrowser-windows-x86_64.exe
+https://github.com/J-kistner/ApiBrowser/releases/download/v0.1.0/apibrowser-linux-x86_64
+https://github.com/J-kistner/ApiBrowser/releases/download/v0.1.0/apibrowser-macos-x86_64
+https://github.com/J-kistner/ApiBrowser/releases/download/v0.1.0/apibrowser-macos-aarch64
+https://github.com/J-kistner/ApiBrowser/releases/download/v0.1.0/apibrowser-windows-x86_64.exe
 ```
 
 ## Security Note
@@ -136,4 +136,4 @@ The `.env` file containing your API key is already in `.gitignore` and will NOT 
 
 ## Support
 
-Users can report issues at: https://github.com/yourusername/ApiBrowser/issues
+Users can report issues at: https://github.com/J-kistner/ApiBrowser/issues

@@ -22,7 +22,7 @@ A terminal-based user interface (TUI) application for browsing FRC Finger Lakes 
 
 **Linux/macOS:**
 ```bash
-curl -sSL https://raw.githubusercontent.com/yourusername/ApiBrowser/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/J-kistner/ApiBrowser/main/install.sh | bash
 ```
 
 Then add to your PATH:
@@ -39,7 +39,7 @@ cargo install apibrowser
 
 ### Download Pre-built Binary
 
-Download the latest release for your platform from the [releases page](https://github.com/yourusername/ApiBrowser/releases):
+Download the latest release for your platform from the [releases page](https://github.com/J-kistner/ApiBrowser/releases):
 - **Linux**: `apibrowser-linux-x86_64`
 - **macOS (Intel)**: `apibrowser-macos-x86_64`
 - **macOS (Apple Silicon)**: `apibrowser-macos-aarch64`
@@ -55,7 +55,7 @@ sudo mv apibrowser-* /usr/local/bin/apibrowser
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/ApiBrowser
+git clone https://github.com/J-kistner/ApiBrowser
 cd ApiBrowser
 ```
 
